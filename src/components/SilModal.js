@@ -1,24 +1,21 @@
 import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useHistory } from "react-router";
 import { Button, Modal } from "semantic-ui-react";
+import { yaziSil } from "../actions";
 import { api } from "../api";
 
-const SilModal = ({ yazi, push }) => {
-  const [open, setOpen] = useState(false);
-  const [hata, setHata] = useState("");
+const SilModal = ({ yazi }) => {
+  const [open, setOpen] = useState(false);//bu state değeri modal'ın açılıp açılmamasını ilgilendiriyor.Redux'a taşımaya gerek yok.
+  const hata = useSelector(state => state.yaziSilHata) //hatayı da state den almış olduk.
   const show = () => setOpen(true);
   const close = () => setOpen(false);
+  const { push } = useHistory()
+
+ const dispatch= useDispatch()
 
   const handleDelete = (id) => {
-    api()
-      .delete(`/posts/${id}`)
-      .then(() => {
-        setHata("");
-        close();
-        push(`/`);
-      })
-      .catch(() => {
-        setHata("Yazıyı silerken hata oluştu.");
-      });
+    dispatch(yaziSil(id, close, push))
   };
 
   return (

@@ -1,44 +1,28 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { api } from "../api";
+import React, { useEffect } from "react";
 import YaziYorumlari from "./YaziYorumlari";
-import { Link, useParams, useHistory, useLocation } from "react-router-dom";
+import { Link, useParams, useHistory} from "react-router-dom";
 import SilModal from "./SilModal";
+import { yaziGetir, yorumEkle } from "../actions";
+import { useDispatch, useSelector } from "react-redux";
 
 const YaziDetayi = () => {
-  const [yaziDetayi, setYaziDetayi] = useState({});
-  const [yorumlar, setYorumlar] = useState([]);
+const yaziDetayi = useSelector(state => state.yaziDetayi);
+const dispatch = useDispatch()
 
   const { id } = useParams();
   const history = useHistory();
-  const location = useLocation();
 
   //yorum gönderildiği zaman işleyecek fonksiyonumuz.
   const handleCommentSubmit = (event, yorum) => {
     event.preventDefault();
-    api()
-      .post(`/posts/${id}/comments`, yorum)
-      .then((response) => {
-        setYorumlar([...yorumlar, response.data]);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    dispatch(yorumEkle(id, yorum)) //id useParams dan geliyor yorum ise handleCommentSubmitten
   };
-
 
 
 //api all da iki isteğimiz var birincisi yazının detayı ikincisi yorumunu alıyor.
   useEffect(() => {
-    axios
-      .all([api().get(`/posts/${id}`), api().get(`/posts/${id}/comments`)])
-      .then((responses) => {
-        setYaziDetayi(responses[0].data);// yazilari bize veriyor
-        setYorumlar(responses[1].data); //yorumları veriyor.
-      }) 
-      .catch((error) => {
-        console.log(error);
-      });
+    dispatch(yaziGetir(id))//id useParams'dan geliyor.yaziGetir fonksiyonunu dispatch ettiğimizde yaziDetayi değeri güncellenecektir.
+    
   }, []);
 
   return (
@@ -51,10 +35,10 @@ const YaziDetayi = () => {
         <Link className="ui blue button" to={`/posts/${yaziDetayi.id}/edit`}>
           Düzenle
         </Link>
-        <SilModal yazi={yaziDetayi} push={history.push} />{/* yazıyı silmek istediğimizde açılan modül */}
+        <SilModal yazi={yaziDetayi} />{/* yazıyı silmek istediğimizde açılan modül */}
       </div>
       <p>{yaziDetayi.content}</p>
-      <YaziYorumlari yorumlar={yorumlar} handleSubmit={handleCommentSubmit} />
+      <YaziYorumlari yorumlar={yaziDetayi.yorumlar} handleSubmit={handleCommentSubmit} />
     </React.Fragment>
   );
 };
